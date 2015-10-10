@@ -25,27 +25,30 @@ K           <- 5       # soft activation constant
 ## Output: weights for the perceptron as c(w_1, w_2, w_3) 
 
 perceptron <- function( dataset, alpha, k) { 
-    w <- runif(3)                   # set weights to random values
+    w <- runif(3)  * 100                 # set weights to random values
     out <- rep( 0, nrow(dataset) )  # zero-fill output vector
     dout <- dataset[,3]             # grab desired output vector
     error <- 1                      # give error a value. quit when < 1.0e-5
+    # for each iteration
     for(i in 1:MAX_ITER){
+        # for each pattern
         for (r in 1:nrow(dataset)) {
+            # compute the net value
             net <- w[1]*dataset[r,1] + w[2]*dataset[r,2] + w[3]
+            # and apply the activation function
             if (missing(k)) {
                 out[r] <- hard_activation(net)            
             } 
             else {
                 out[r] <- soft_activation(net, k)
             }
-        }
-        error <- (dout[r]-out[r]) / length(dout)
-        learn <- alpha * error
+            error <- as.integer(out[r] == dout[r])
+            learn <- alpha * error
             
-        w[1] <- w[1] + learn * dataset[r,1]
-        w[2] <- w[2] + learn * dataset[r,1]
-        
-        
+            w[1] <- w[1] + learn * dataset[r,1]
+            w[2] <- w[2] + learn * dataset[r,2]
+        }
+
         cat("error: ", error, "weights: ", w,  "\n")
         cat("y = ", w[1]/w[2], "x + ", w[3]/w[2], "\n")
         
@@ -56,6 +59,41 @@ perceptron <- function( dataset, alpha, k) {
     
     return(w)   # return weights
 }
+
+perceptron <- function (dataset, alpha, k = 0) {
+    w   <- runif(3) * 100
+    out <- rep(0, nrow(dataset))
+    d   <- dataset[,3]
+    
+    replicate(MAX_ITER,  {
+        for(r in nrow(dataset)) {
+            net   <- w[1]*dataset[r,1] + w[2]*dataset[r,2] + w[3]
+            out   <- activation(net, k)
+            error <- mean( as.integer(out == d) )
+            learn <- alpha * error
+
+            w[1] <- w[1] + learn * dataset[r,1]
+            w[2] <- w[2] + learn * dataset[r,2]
+            w[3] <- w[3] + learn
+            
+            cat("error: ", error, "weights: ", w,  "\n")
+            cat("y = ", w[1]/w[2], "x + ", w[3]/w[2], "\n")
+        }
+    }
+    
+    return(w)
+}
+
+# Activation Function
+# Input: arbitrary numerical x and activation constant k
+#        note: ommiting k implies "hard activation"
+# Output: real value [-1,1]
+activation <- function(x, k) {
+    y <- 1 / (1 + exp(-k*x))
+    return(y)
+}
+
+
 
 # Hard Activation function to assign pattern's net score to label {-1, 1}
 # Input: arbitrary numerical x
@@ -68,13 +106,7 @@ hard_activation <- function(x) {
     return(y)
 }
 
-# Soft Activation
-# Input: arbitrary numerical x and activation constant k
-# Output: real value [-1,1]
-soft_activation <- function(x, k) {
-    y <- 1 / (1 + exp(-k*x))
-    return(y)
-}
+
 
 ###############################################################################
 # Begin Program
