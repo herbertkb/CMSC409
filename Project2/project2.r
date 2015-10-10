@@ -14,50 +14,17 @@ K           <- 5       # soft activation constant
 # Functions
 ###############################################################################
 
-# Hard Activation Perceptron
+# Perceptron
 ###############################################################################
 # This is modeled after the Perl code in the session 10 slides.
 # I tried writing it more "Lispy" as a function or set of functions to
 # apply() to an arbitrary set but went in circles.
-## Input: a dataframe with three columns: x_1, x_2, label of {-1, 1} 
+## Input: dataframe with three columns: x_1, x_2, label of {-1, 1} 
+##        numeric learning constant alpha
+##        optional: soft activation constant k. 
 ## Output: weights for the perceptron as c(w_1, w_2, w_3) 
-hard_perceptron <- function( dataset, alpha) { 
-    w <- runif(3) * 100             # set weights to random values
-    out <- rep( 0, nrow(dataset) )  # zero-fill output vector
-    dout <- dataset[,3]             # grab desired output vector
-    error <- 1                      # give error a value. quit when < EPSILON
-    for(i in 1:MAX_ITER){
-        for (r in 1:nrow(dataset)) {
-            net <- w[1]*dataset[r,1] + w[2]*dataset[r,2] + w[3]
-            out[r] <- hard_activation(net)
-            error <- dout[r]-out[r]
-            learn <- alpha * error
-            
-            w[1] <- w[1] + learn * dataset[r,1]
-            w[2] <- w[2] + learn * dataset[r,1]
-        }
-        if (abs(error) < EPSILON) {
-            break
-         }
-    }
-    
-    return(w)   # return weights
-}
 
-# Hard Activation function to assign pattern's net score to label {-1, 1}
-# Input: arbitrary numerical x
-# Output: the sign of x, or 0.5 if x == 0
-hard_activation <- function(x) {
-    y = 0.5
-    if (x > 0 || x < 0) { 
-        y <- sign(x) 
-    }
-    return(y)
-}
-
-# Soft Activation Perceptron
-###############################################################################
-soft_perceptron <- function( dataset, alpha, k) { 
+perceptron <- function( dataset, alpha, k) { 
     w <- runif(3)                   # set weights to random values
     out <- rep( 0, nrow(dataset) )  # zero-fill output vector
     dout <- dataset[,3]             # grab desired output vector
@@ -90,7 +57,20 @@ soft_perceptron <- function( dataset, alpha, k) {
     return(w)   # return weights
 }
 
+# Hard Activation function to assign pattern's net score to label {-1, 1}
+# Input: arbitrary numerical x
+# Output: the sign of x, or 0.5 if x == 0
+hard_activation <- function(x) {
+    y = 0.5
+    if (x > 0 || x < 0) { 
+        y <- sign(x) 
+    }
+    return(y)
+}
+
 # Soft Activation
+# Input: arbitrary numerical x and activation constant k
+# Output: real value [-1,1]
 soft_activation <- function(x, k) {
     y <- 1 / (1 + exp(-k*x))
     return(y)
@@ -116,9 +96,9 @@ train_set <- hws[train_ind,]
 ## create testing set dataframe from the complement of sample indices
 test_set <- hws[-train_ind,]
 
-hard_weights <- hard_perceptron(train_set, ALPHA)
+hard_weights <- perceptron(train_set, ALPHA)
 
-soft_weights <- soft_perceptron(train_set, ALPHA, K)
+soft_weights <- perceptron(train_set, ALPHA, K)
 
 plot(hws$height[hws$sex == 1], hws$weight[hws$sex == 1], 
     col='blue', pch=3,
