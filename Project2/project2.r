@@ -21,68 +21,45 @@ K           <- 5       # soft activation constant
 # apply() to an arbitrary set but went in circles.
 ## Input: dataframe with three columns: x_1, x_2, label of {-1, 1} 
 ##        numeric learning constant alpha
-##        optional: soft activation constant k. 
+## Optional: soft activation constant k. (default approximates hard activation)
+##           maxiumum iteration count max_iter (deault 1,000 iterations)
+##           minimum error (default 1e-5)
 ## Output: weights for the perceptron as c(w_1, w_2, w_3) 
 
-perceptron <- function( dataset, alpha, k) { 
-    w <- runif(3)  * 100                 # set weights to random values
-    out <- rep( 0, nrow(dataset) )  # zero-fill output vector
-    dout <- dataset[,3]             # grab desired output vector
-    error <- 1                      # give error a value. quit when < 1.0e-5
-    # for each iteration
-    for(i in 1:MAX_ITER){
-        # for each pattern
-        for (r in 1:nrow(dataset)) {
-            # compute the net value
-            net <- w[1]*dataset[r,1] + w[2]*dataset[r,2] + w[3]
-            # and apply the activation function
-            if (missing(k)) {
-                out[r] <- hard_activation(net)            
-            } 
-            else {
-                out[r] <- soft_activation(net, k)
-            }
-            error <- as.integer(out[r] == dout[r])
-            learn <- alpha * error
-            
-            w[1] <- w[1] + learn * dataset[r,1]
-            w[2] <- w[2] + learn * dataset[r,2]
-        }
-
-        cat("error: ", error, "weights: ", w,  "\n")
-        cat("y = ", w[1]/w[2], "x + ", w[3]/w[2], "\n")
-        
-        if (abs(error) < EPSILON) { 
-            break
-         }
-    }
-    
-    return(w)   # return weights
-}
-
-perceptron <- function (dataset, alpha, k = 0) {
-    w   <- runif(3) * 100
+perceptron <- function (dataset, alpha, k = 30, max_iter=1000, min_error=1e-5) {
+    w   <- runif(3)
     out <- rep(0, nrow(dataset))
     d   <- dataset[,3]
+    R   <- max(apply(dataset[, 1:2], 1, function(x) sqrt(sum(x**2))))
     
-    replicate(MAX_ITER,  {
+    
+    
+    #replicate(max_iter,  { 
+    for(i in 1:max_iter) {
         for(r in nrow(dataset)) {
-            net   <- w[1]*dataset[r,1] + w[2]*dataset[r,2] + w[3]
-            out   <- activation(net, k)
-            error <- mean( as.integer(out == d) )
+            net <- w[1]*dataset[r,1] + w[2]*dataset[r,2] + w[3]
+            out[r] <- -1 * activation(net, k)
+        
+            error <- d[r] - out[r]
             learn <- alpha * error
-
+            
             w[1] <- w[1] + learn * dataset[r,1]
             w[2] <- w[2] + learn * dataset[r,2]
-            w[3] <- w[3] + learn
-            
-            cat("error: ", error, "weights: ", w,  "\n")
-            cat("y = ", w[1]/w[2], "x + ", w[3]/w[2], "\n")
+            w[3] <- w[3] + learn * R**2
+                   
+
         }
+        
+        
+        
+        
+        print_stuff(error, w)
     }
     
     return(w)
 }
+
+# perceptron(train_set, 0.5, k=5, max_iter=5)
 
 # Activation Function
 # Input: arbitrary numerical x and activation constant k
@@ -93,19 +70,45 @@ activation <- function(x, k) {
     return(y)
 }
 
-
-
-# Hard Activation function to assign pattern's net score to label {-1, 1}
-# Input: arbitrary numerical x
-# Output: the sign of x, or 0.5 if x == 0
-hard_activation <- function(x) {
-    y = 0.5
-    if (x > 0 || x < 0) { 
-        y <- sign(x) 
-    }
-    return(y)
+# Print Stuff
+print_stuff <- function( error, w) {
+    cat("error: ", error, "\tweights: ", w,"\n" )
+    cat("y = ", -w[1]/w[2], "x + ", w[3], "\n")
 }
 
+# Plot Stuff
+###############################################################################
+plot_stuff <- function (dataset, weights){
+
+    plot(hws$height[hws$sex == 1], hws$weight[hws$sex == 1], 
+        col='blue', pch=3,
+        xlab='Height (cm)', ylab='Weight (kg)',
+      #  xlim=range(hws$height),
+      #  ylim=range(hws$weight)
+          xlim = c(0,200),
+          ylim = c(0,500)
+    )
+    points(hws$height[hws$sex == -1], hws$weight[hws$sex == -1], 
+        col='red', pch=3)
+    
+    title('Male and Female Height vs Weight')
+    
+    abline(weights[3], -weights[1]/weights[2], col = 'forestgreen', lwd = 3)
+
+    # Draw the legend (annoyingly difficult)
+    legend( x='topleft', 
+            legend=c('Male', 'Female', 'Decision Function'),
+            lty=1, lwd=3, 
+            bg='white',
+            col=c('white', 'white','forestgreen'))
+    legend( x='topleft', 
+            legend=c('', '', ''), 
+            text.col=NA,
+            pch=1,
+            lty=c(0,0,1),
+            col=c('blue','red', NA))
+    
+}
 
 
 ###############################################################################
@@ -132,30 +135,8 @@ hard_weights <- perceptron(train_set, ALPHA)
 
 soft_weights <- perceptron(train_set, ALPHA, K)
 
-plot(hws$height[hws$sex == 1], hws$weight[hws$sex == 1], 
-    col='blue', pch=3,
-    xlab='Height (cm)', ylab='Weight (kg)',
-    xlim=range(hws$height),
-    ylim=range(hws$weight)
-)
-points(hws$height[hws$sex == -1], hws$weight[hws$sex == -1], col='red', pch=3)
-title('Male and Female Height vs Weight')
 
-w <- hard_weights
-abline(w[3]/w[2], w[1]/w[2], col = 'forestgreen', lwd = 3)
 
-# Draw the legend (annoyingly difficult)
-legend( x='topleft', 
-        legend=c('Male', 'Female', 'Decision Function'),
-        lty=1, lwd=3, 
-        bg='white',
-        col=c('white', 'white','forestgreen'))
-legend( x='topleft', 
-        legend=c('', '', ''), 
-        text.col=NA,
-        pch=1,
-        lty=c(0,0,1),
-        col=c('blue','red', NA))
 
 
 
