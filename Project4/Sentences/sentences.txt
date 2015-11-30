@@ -1,0 +1,5 @@
+The autonomous sedan will be able to travel on any type of road at speeds of up to 60 miles per hour.
+This gets the car from 0 to 60 miles per hour (that is, to 97 kilometers per hour) in 3.2 seconds.
+On the road test, we were able to achieve a range of 220 kilometers (around 138 miles) on a charge.
+The car will go 443 kilometers (275 miles) on a charge, up 3.7 percent from before.
+The autonomous sedan will do a lap or 2 at around 250 kilometers per hour (149 miles per hour).

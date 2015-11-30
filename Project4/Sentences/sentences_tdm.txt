@@ -1,0 +1,5 @@
+The 31.5 kilometers of roads that are off limits to the public, will be used for testing the autonomously driven car.
+They have completed over 300,000 autonomous driving miles (500,000 kilometers) accident-free.
+The car had to autonomously deal with a number of situations on the road.
+Over 839 miles of driving, we averaged 29 miles per gallon, for the 3317 pound sedan.
+The car went round the 3 mile off road lap in 11 minutes and 50 seconds, which is an average of around 15 miles per hour.

@@ -31,29 +31,26 @@ perceptron <- function (dataset, alpha, k = 30, max_iter=1000, min_error=1e-5) {
     out <- rep(0, nrow(dataset))
     d   <- dataset[,3]
     R   <- max(apply(dataset[, 1:2], 1, function(x) sqrt(sum(x**2))))
-    
-    
-    
-    #replicate(max_iter,  { 
+        
     for(i in 1:max_iter) {
         for(r in nrow(dataset)) {
             net <- w[1]*dataset[r,1] + w[2]*dataset[r,2] + w[3]
-            out[r] <- -1 * activation(net, k)
+            out[r] <- 2 * activation(net, k) - 1
         
             error <- d[r] - out[r]
-            learn <- alpha * error
-            
-            w[1] <- w[1] + learn * dataset[r,1]
-            w[2] <- w[2] + learn * dataset[r,2]
-            w[3] <- w[3] + learn * R**2
+        
+            if (abs(error) > min_error) { 
+                learn <- alpha * error
+                
+                w[1] <- w[1] + learn * dataset[r,1]
+                w[2] <- w[2] + learn * dataset[r,2]
+                w[3] <- w[3] + learn * R**2
                    
-
+            }
+        
         }
         
-        
-        
-        
-        print_stuff(error, w)
+#        print_stuff(error, w)
     }
     
     return(w)
@@ -73,7 +70,7 @@ activation <- function(x, k) {
 # Print Stuff
 print_stuff <- function( error, w) {
     cat("error: ", error, "\tweights: ", w,"\n" )
-    cat("y = ", -w[1]/w[2], "x + ", w[3], "\n")
+    cat("y = ", -w[1]/w[2], "x + ", w[3]/w[2], "\n")
 }
 
 # Plot Stuff
@@ -86,14 +83,15 @@ plot_stuff <- function (dataset, weights){
       #  xlim=range(hws$height),
       #  ylim=range(hws$weight)
           xlim = c(0,200),
-          ylim = c(0,500)
+          ylim = c(0,800)
     )
     points(hws$height[hws$sex == -1], hws$weight[hws$sex == -1], 
-        col='red', pch=3)
+            col='red', pch=3)
     
     title('Male and Female Height vs Weight')
     
-    abline(weights[3], -weights[1]/weights[2], col = 'forestgreen', lwd = 3)
+    abline(weights[3]/weights[2], -weights[1]/weights[2], 
+            col = 'forestgreen', lwd = 3)
 
     # Draw the legend (annoyingly difficult)
     legend( x='topleft', 
