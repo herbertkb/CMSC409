@@ -5,7 +5,8 @@
 Processing the document corpus begins with `featurevec.pl`. It is assumed that 
 each document consists of ASCII text and is separated by newlines.In our test 
 corpus, each document is an English sentence. The goal of this program is to 
-extract just those words which give the most information about each document. 
+extract just those words which give the most information about each document.
+ 
 `featurevec.pl` begins by tokenizing the input documents as features separated 
 by one or more blank spaces. This simplifies the language model by letting us 
 focus on just characteristic words for each document but loses any information 
@@ -19,6 +20,9 @@ pronouns, and others are removed because they are uninteresting from an
 information standpoint due to their ubiquity and lack of context. Finally, the 
 `featurevec.pl` program uses Porter stemming on the remaining words to remove 
 conjugations and reduce various forms of a word to its stem.
+
+The Porter stemming algorithm is implemented in a module taken from: 
+http://ldc.usb.ve/~vdaniel/porter.pm
 
 The feature vector is the set of words which most characterizes a document and 
 is printed to STDOUT one vector per line. These lines can be piped into 
