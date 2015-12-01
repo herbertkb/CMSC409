@@ -1,13 +1,14 @@
 #!/usr/bin/perl
 # featurevec.pl
 # Generates a feature vector from a line of input.
+# Keith Herbert, 30 Nov 2015
 
 use strict;
 use warnings; 
 use feature qw(say);
-use Data::Dumper;
 
-use porter;         # porter.pm must be in same directory or @INC !
+# Module for Porter Stemmer
+use porter;         # porter.pm must be in same directory!
 
 my $USAGE = "Usage: perl featurevec.pl <stop words file> <input file(s)>";
 die $USAGE unless ($#ARGV >= 1);
@@ -20,7 +21,7 @@ open my $stop_filehandle, '<', $stop_filename or
 chomp(my @stop_words = <$stop_filehandle> );
 close $stop_filehandle;       
 
-###############################################################################
+##############################################################################
 while(<>){
     chomp;
     
