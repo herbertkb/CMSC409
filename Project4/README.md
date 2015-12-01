@@ -29,7 +29,10 @@ is printed to STDOUT one vector per line. These lines can be piped into
 `tdm.pl` to generate a term document matrix for the corpus. 
 
 ## Feature Vector
-
+    % ./featurevec.pl 
+    Usage: perl featurevec.pl <stop words file> <input file(s)>
+    
+    
     % perl featurevec.pl stop_words.txt sentences.txt
     autonom sedan travel type road speed up mile per hour 
     get car mile per hour kilomet per hour  seconds 
