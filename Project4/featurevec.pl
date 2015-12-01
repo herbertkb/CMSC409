@@ -29,7 +29,7 @@ while(<>){
     my @tokens = split;
     
     # B & C. Remove punctuation and special characters and remove numbers
-    map { s/[^A-Za-z]//g; } @tokens;
+    map { s/[^A-Za-z]/ /g; } @tokens;
     
     # D. Convert uppercase to lowercase
     map { $_ = lc; } @tokens;
