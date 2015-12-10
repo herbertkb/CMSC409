@@ -1,0 +1,4 @@
+P: 1 x n
+V: m x n
+V^T: n x m
+PV^T = 1xm
