@@ -13,14 +13,16 @@ program kohonen
     end interface
 
     character(len=64)   :: filename_in, &  !! input file from command line 
-                           filename_out,&  !! output file from command line
                            str_alpha,   &  !! learning rate alpha from command line
                            str_n,       &  !! feature dimension from command line
-                           str_m           !! neuron count from command line
-    character(len=*),parameter :: filename_neurons = "neurons.txt"
+                           str_m ,      &  !! neuron count from command line
+                           str_seed        !! seed for PRNG to initialize neurons
 
-    integer             ::  fu_in, &       !! input file unit
-                            fu_out         !! output file unit
+    character(len=*),parameter :: filename_neurons = "neurons.txt"
+    character(len=*),parameter :: filename_normalized = "normalized_patterns.txt"
+
+    integer, parameter  ::  fu_in = 100, &       !! input file unit
+                            fu_out= 101          !! output file unit
 
     real                :: alpha           !! learning rate from command line                   
 
@@ -34,19 +36,22 @@ program kohonen
                            m,    &      !! how many neurons
                            n,    &      !! how many features for each pattern
                            length_X,&   !! how many patterns in dataset
-                           clock_seed   !! system clock used to seed PRNG
+                           seed         !! seed for PRNG to initialize neurons 
  
     !! Set command line arguments
     call get_command_argument(1, filename_in)
-    call get_command_argument(2, filename_out)
-    call get_command_argument(3, str_m)
-    call get_command_argument(4, str_n)
-    call get_command_argument(5, str_alpha)
+    call get_command_argument(2, str_m)
+    call get_command_argument(3, str_n)
+    call get_command_argument(4, str_alpha)
+    call get_command_argument(5, str_seed)
     read (str_m, *) m
     read (str_n, *) n 
     read (str_alpha, *) alpha
+    read (str_seed, *) seed
 
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Read in the data file and save it as a feature vector
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     print *, "Reading patterns from ", filename_in
     
     length_X = CountLinesInFile(filename_in) - 1
@@ -56,8 +61,10 @@ program kohonen
     read(fu_in, *) X
     close(fu_in)
 
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Normalize the values in the feature vector between [0,1]
     !! z_i = x_i / sqrt( sumofallsquares(x) )
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
     allocate(Z(n, length_X))    !! store patterns in column-major order, n rows and length_X rows
     
@@ -67,29 +74,33 @@ program kohonen
     end do
 
     !! write the normalized patterns to file
-    open(unit=11, file="normalized_patterns.txt")
+    open(unit=11, file=filename_normalized) 
         do i=1,length_X
             write(11,*) Z(1:n, i)
         enddo
     close(11)
 
 
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Set up the neurons
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     allocate(V(n, m))       !! V = neuron matrix with rows=#features and cols=#neurons 
     
+    print *, "Starting neuron weights"
     !! Initialize the neurons with random weights between [0,1]
-    call system_clock(clock_seed)
-    call random_seed(clock_seed)
+    call random_seed(seed)
     call random_number(V)
     
     !! Normalize neuron weights
     !! v_i = w_i / sqrt( sum{i=1}{n}(w_i^2) )
     do i=1,m    !! for each neuron
         V(1:n, i) = abs( V(i, 1:n) / sqrt( sum( V(i, 1:n)**2 )) )
-!       print *, V(1:n, i) 
+        print *, V(1:n, i) 
     end do
 
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Apply a pattern to the network
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     allocate(nets(m))
     allocate(P(n))
 
@@ -112,7 +123,6 @@ program kohonen
         !! Modify weights for winner by learning constant alpha
         !! W_k = V_k + alpha*Z
         V(1:n, k) = V(1:n, k) + alpha*P
-        
         print *, "new weights: ", V(k,1:n) 
         
         !! Normalize the weights for just the winning neuron
@@ -121,6 +131,7 @@ program kohonen
         print *, "==============="
     end do 
    
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     print *, "Final neuron weights"
     !! write final neuron weights to file
     open(unit=11, file=filename_neurons)
@@ -131,6 +142,7 @@ program kohonen
     close(11)
 
 end program
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 integer function CountLinesInFile(filename) result (lineCount)
     implicit none
