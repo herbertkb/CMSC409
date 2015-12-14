@@ -33,8 +33,7 @@ To plot, run gnuplot with the provided script `kohonen.plt`. This generates a .p
 
 ### Raw data patterns
 
-[kohonen/kohonen_raw.png]
-
+![Plot of raw input pattersn](kohonen/kohonen_raw.png)
 ### Normalized data patterns
 
 ### Two-neuron network with random weights
