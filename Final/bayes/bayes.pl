@@ -1,4 +1,4 @@
-#!/usr/bin/perl env
+#!/usr/bin/perl
 #
 # bayes.pl
 # Keith Herbert
@@ -42,6 +42,7 @@ my %class_prob;
 for my $class (keys %class_freq) {
     $class_prob{ $class } = $class_freq{$class} / $N;
 }
+#print Dumper(\%class_prob);
 
 my %class_mu;
 for my $class (keys %class_x) {
@@ -100,12 +101,17 @@ my $classifier = sub {
     for my $c (keys %class_prob) {
         
         $likelihood = P_of_X_given_C($x, $c) * $class_prob{$c};
-        
+       
+        print "$x\t$c\t$likelihood\n";
+
         if ($likelihood > $max_likelihood) {
             $most_likely = $c;
+            $max_likelihood = $likelihood;
         }
     }
-    
+   
+    print "$x => $most_likely\n";
+
     return $most_likely;
 };
 
@@ -200,7 +206,7 @@ close $PLT;
 
 print "Reading $testing_file to evaluate classifier.\n"; 
 open my $TEST, '<', $testing_file or die "Could not open testing file";
-my %score;
+my %confusion;
 while(<$TEST>){
     chomp;
     # skip any line that doesn't start with a number or minus sign
@@ -209,17 +215,25 @@ while(<$TEST>){
     my($x, $class_obs) = split ',';
     
     my $class_pred = $classifier->($x);
-    
-    if ($class_obs eq $class_pred)  { $score{RIGHT}++; }
-    else                            { $score{WRONG}++; }
-    
+    $confusion{$class_obs}{$class_pred} += 1;    
 }
 close $TEST;
 
-print "\tTotal right: $score{RIGHT}\n";
-print "\tTotal wrong: $score{WRONG}\n";
-my $percent = $score{RIGHT} / ($score{RIGHT} + $score{WRONG});
-print "\t% correct: $percent\n";
+# print Dumper(\%confusion);
+
+print "Confusion matrix for Bayesian Classifier\n";
+print " "x10;
+printf "%10s", $_ for (sort keys %confusion);
+print "\n";
+
+for my $observed (sort keys %confusion) {
+    printf "%10s", $observed;
+    for my $predicted (keys %{ $confusion{$observed} } ) {
+        printf "%10s", $confusion{$observed}{$predicted};   
+    }
+
+    print "\n";
+}
 
 
 sub P_of_X_given_C {
@@ -232,6 +246,6 @@ sub P_of_X_given_C {
                          / 2*$class_variance{$class} );
      
      my $prob = $first_part * $sec_part;
-     #print "$x => $prob = $first_part * $sec_part\n";
+     
      return $prob;
 }

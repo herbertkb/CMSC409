@@ -1,9 +1,9 @@
-pattern_file = "normalized_patterns.txt"
-neuron_file =  "neurons.txt"
-plot_file = "neurons_3_preset.png"
+pattern_file = "../data/Ex1_data.txt"
+neuron_file =  "neuron_preset.csv"
+plot_file = "neurons_7_preset_raw.png"
 
 print "Plotting to ", plot_file
-
+set datafile separator ","
 set term png size 600,600 
 set output plot_file
 

@@ -16,7 +16,8 @@ program kohonen
                            str_alpha,   &  !! learning rate alpha from command line
                            str_n,       &  !! feature dimension from command line
                            str_m ,      &  !! neuron count from command line
-                           str_seed        !! seed for PRNG to initialize neurons
+                           str_seed,    &  !! seed for PRNG to initialize neurons
+                           filename_preset_neurons !! optional preset neuron file
 
     character(len=*),parameter :: filename_neurons = "neurons.txt"
     character(len=*),parameter :: filename_normalized = "normalized_patterns.txt"
@@ -44,6 +45,7 @@ program kohonen
     call get_command_argument(3, str_n)
     call get_command_argument(4, str_alpha)
     call get_command_argument(5, str_seed)
+    call get_command_argument(6, filename_preset_neurons)
     read (str_m, *) m
     read (str_n, *) n 
     read (str_alpha, *) alpha
@@ -85,12 +87,17 @@ program kohonen
     !! Set up the neurons
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     allocate(V(n, m))       !! V = neuron matrix with rows=#features and cols=#neurons 
-    
-    print *, "Starting neuron weights"
-    !! Initialize the neurons with random weights between [0,1]
-    call random_seed(seed)
-    call random_number(V)
-    
+    !! Check if the preset neuron file exists and initilize them to its contents
+    if (command_argument_count() .EQ. 6) then
+        open(unit=fu_in, file=filename_preset_neurons, status='old')
+        read(fu_in, *) V
+        close(fu_in)
+    else
+        !! Initialize the neurons with random weights between [0,1]
+        call random_seed(seed)
+        call random_number(V)
+    end if
+    print *, "Starting neuron weights (normalized)"
     !! Normalize neuron weights
     !! v_i = w_i / sqrt( sum{i=1}{n}(w_i^2) )
     do i=1,m    !! for each neuron
